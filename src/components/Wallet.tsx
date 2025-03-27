@@ -10,16 +10,19 @@ const Wallet: React.FC = () => {
   const [txType, setTxType] = useState<"credit" | "debit">("credit");
   const [txDescription, setTxDescription] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     const walletId = localStorage.getItem("walletId");
     if (walletId) {
+      setLoading(true);
       getWallet(walletId)
         .then((res) => setWallet(res.data))
         .catch((err) => {
           console.error(err);
           setError("Failed to fetch wallet details.");
-        });
+        })
+        .finally(() => setLoading(false));
     }
   }, []);
 
@@ -30,6 +33,7 @@ const Wallet: React.FC = () => {
       return;
     }
     const balance = initialBalance ? parseFloat(initialBalance) : 0;
+    setLoading(true);
     try {
       const res = await setupWallet({ name: username, balance });
       const newWallet: WalletType = res.data;
@@ -39,6 +43,8 @@ const Wallet: React.FC = () => {
     } catch (err) {
       console.error(err);
       setError("Failed to setup wallet.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -49,9 +55,7 @@ const Wallet: React.FC = () => {
       return;
     }
 
-    const amount = txType === "credit" 
-      ? parseFloat(txAmount) 
-      : -Math.abs(parseFloat(txAmount));
+    const amount = txType === "credit" ? parseFloat(txAmount) : -Math.abs(parseFloat(txAmount));
 
     const walletId = localStorage.getItem("walletId");
 
@@ -65,26 +69,28 @@ const Wallet: React.FC = () => {
       return;
     }
 
+    setLoading(true);
     try {
       const res = await transactWallet(walletId, {
         amount,
         description: txDescription,
       });
 
-      setWallet((prev) => prev ? { ...prev, balance: res.data.balance } : null);
+      setWallet((prev) => (prev ? { ...prev, balance: res.data.balance } : null));
       setTxAmount("");
       setTxDescription("");
       setError("");
     } catch (err) {
       console.error(err);
       setError("Transaction failed.");
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleAmountChange = (amount: string) => {
     setTxAmount(amount);
     const parsedAmount = parseFloat(amount);
-
     if (parsedAmount <= 0) {
       setTxAmount("");
       setError("Amount should be greater than 0.");
@@ -98,67 +104,54 @@ const Wallet: React.FC = () => {
       <h1>Wallet</h1>
       {error && <p className="error">{error}</p>}
 
-      {!wallet ? (
-        <div className="form-container">
-          <h2>Initialize Wallet</h2>
-          <form onSubmit={handleSetup}>
-            <label>Username:</label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-            />
-            <label>Initial Balance (optional):</label>
-            <input
-              type="number"
-              value={initialBalance}
-              onChange={(e) => setInitialBalance(e.target.value)}
-            />
-            <div>
-              <button type="submit">Create Wallet</button>
-            </div>
-          </form>
+      {loading ? (
+        <div className="loader">
+          <div className="spinner"></div>
         </div>
       ) : (
-        <div className="form-container">
-          <h2>Wallet Details</h2>
-          <p>
-            <strong>ID:</strong> {wallet.id}
-          </p>
-          <p>
-            <strong>Name:</strong> {wallet.name}
-          </p>
-          <p>
-            <strong>Balance:</strong> {wallet.balance.toFixed(4)}
-          </p>
-          <hr />
-          <h3>Make a Transaction</h3>
-          <form onSubmit={handleTransaction}>
-            <label>Amount:</label>
-            <input
-              type="number"
-              value={txAmount}
-              onChange={(e) => handleAmountChange(e.target.value)}
-              required
-            />
-            <label>Type:</label>
-            <select
-              value={txType}
-              onChange={(e) => setTxType(e.target.value as "credit" | "debit")}
-            >
-              <option value="credit">Credit</option>
-              <option value="debit">Debit</option>
-            </select>
-            <label>Description: (Optional)</label>
-            <input
-              type="text"
-              value={txDescription}
-              onChange={(e) => setTxDescription(e.target.value)}
-            />
-            <button type="submit">Submit Transaction</button>
-          </form>
-        </div>
+        <>
+          {!wallet ? (
+            <div className="form-container">
+              <h2>Initialize Wallet</h2>
+              <form onSubmit={handleSetup}>
+                <label>Username:</label>
+                <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} required />
+                <label>Initial Balance (optional):</label>
+                <input type="number" value={initialBalance} onChange={(e) => setInitialBalance(e.target.value)} />
+                <div>
+                  <button type="submit">Create Wallet</button>
+                </div>
+              </form>
+            </div>
+          ) : (
+            <div className="form-container">
+              <h2>Wallet Details</h2>
+              <p>
+                <strong>ID:</strong> {wallet.id}
+              </p>
+              <p>
+                <strong>Name:</strong> {wallet.name}
+              </p>
+              <p>
+                <strong>Balance:</strong> {wallet.balance.toFixed(4)}
+              </p>
+              <hr />
+              <h3>Make a Transaction</h3>
+              <form onSubmit={handleTransaction}>
+                <label>Amount:</label>
+                <input type="number" value={txAmount} onChange={(e) => handleAmountChange(e.target.value)} required />
+                <label>Type:</label>
+                <select value={txType} onChange={(e) => setTxType(e.target.value as "credit" | "debit")}>
+                  <option value="credit">Credit</option>
+                  <option value="debit">Debit</option>
+                </select>
+                <label>Description: (Optional)</label>
+                <input type="text" value={txDescription} onChange={(e) => setTxDescription(e.target.value)} />
+                <button type="submit">Submit Transaction</button>
+              </form>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

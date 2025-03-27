@@ -126,3 +126,56 @@ table tr:nth-child(even) {
   cursor: pointer;
   margin-top: 15px;
 }
+
+.sorting-controls {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.sorting-controls label {
+  margin-right: 5px;
+  font-weight: bold;
+}
+
+.sorting-controls select {
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-right: 10px;
+}
+
+.sorting-controls button {
+  padding: 5px 10px;
+  border: none;
+  background-color: #0077cc;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.sorting-controls button:hover {
+  background-color: #005fa3;
+}
+
+.loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px; /* Adjust as needed to cover the table area */
+  width: 100%;
+}
+
+.spinner {
+  border: 8px solid #f3f3f3; /* Light grey */
+  border-top: 8px solid #0077cc; /* Blue */
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
