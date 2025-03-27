@@ -9,6 +9,7 @@ type SortOrder = "asc" | "desc";
 const Transactions: React.FC = () => {
   const navigate = useNavigate();
   const [transactions, setTransactions] = useState<TransactionResponse[]>([]);
+  const [allTransactionsCount, setAllTransactionsCount] = useState<number>(0);
   const [skip, setSkip] = useState<number>(0);
   const limit = 10;
   const [error, setError] = useState<string>("");
@@ -28,6 +29,9 @@ const Transactions: React.FC = () => {
       const res = await fetchTransactions({ walletId, skip, limit });
       setTransactions(res.data);
       setError("");
+
+      const allTransactions = await fetchTransactions({ walletId, skip: 0, limit: 10000 });
+      setAllTransactionsCount(allTransactions.data.length);
     } catch (err) {
       console.error(err);
       setError("Failed to load transactions.");
@@ -135,7 +139,7 @@ const Transactions: React.FC = () => {
         <button onClick={handlePrevious} disabled={skip === 0}>
           Previous
         </button>
-        <button onClick={handleNext} disabled={transactions.length <= limit}>
+        <button onClick={handleNext} disabled={skip + limit >= allTransactionsCount}>
           Next
         </button>
       </div>
