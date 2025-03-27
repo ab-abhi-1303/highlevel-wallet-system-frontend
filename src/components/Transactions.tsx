@@ -135,7 +135,7 @@ const Transactions: React.FC = () => {
         <button onClick={handlePrevious} disabled={skip === 0}>
           Previous
         </button>
-        <button onClick={handleNext} disabled={transactions.length < limit}>
+        <button onClick={handleNext} disabled={transactions.length <= limit}>
           Next
         </button>
       </div>
